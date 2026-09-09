@@ -1,24 +1,49 @@
 # -*- coding: utf-8 -*-
 """Проверка живого сайта через pwlib (Playwright): данные, меню, попап по Shift, HE-режим.
 
-Запуск из корня репо:  PYTHONUTF8=1 python tools/prodcheck.py [URL] [--shot FILE.png]
-По умолчанию URL = https://imyavel.github.io/gilgulim/ . Код выхода 0 = все проверки прошли.
+Запуск из корня репо:
+    PYTHONUTF8=1 python tools/prodcheck.py [URL] [--seg 11.4] [--segs N] [--shot FILE.png]
+
+URL по умолчанию https://imyavel.github.io/gilgulim/ ; якорный сегмент --seg (по умолчанию
+11.4) задаёт, что открывать и проверять; ожидаемое число сегментов берётся из локальной
+сборки data.json, переопределяется через --segs. Код выхода 0 = все проверки прошли.
 """
+import argparse
+import io
 import json
+import os
 import sys
 import urllib.request
 
 sys.path.insert(0, r"C:\Users\admin\.claude\bin\pw")
 from pwlib import browser  # noqa: E402
 
-url = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("--") else "https://imyavel.github.io/gilgulim/"
-shot = None
-if "--shot" in sys.argv:
-    shot = sys.argv[sys.argv.index("--shot") + 1]
-profile = "gilgulim"
-if "--profile" in sys.argv:
-    profile = sys.argv[sys.argv.index("--profile") + 1]
-url = url.rstrip("/") + "/"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+ap = argparse.ArgumentParser()
+ap.add_argument("url", nargs="?", default="https://imyavel.github.io/gilgulim/")
+ap.add_argument("--seg", default="11.4", help="якорный сегмент проверки (по умолчанию 11.4)")
+ap.add_argument("--segs", type=int, help="ожидаемое число сегментов (по умолчанию — из локального data.json)")
+ap.add_argument("--shot", help="куда сохранить скриншот попапа")
+ap.add_argument("--profile", default="gilgulim")
+args = ap.parse_args()
+
+url = args.url.rstrip("/") + "/"
+seg = args.seg
+chap = seg.split(".")[0]
+sel = "p.seg#s" + seg.replace(".", r"\.")   # CSS-селектор сегмента (точка в id экранируется)
+shot = args.shot
+profile = args.profile
+
+expect_segs = args.segs
+if expect_segs is None:
+    local = os.path.join(ROOT, "data.json")
+    if not os.path.exists(local):
+        sys.exit("нет локального data.json — соберите (tools/build.py) или задайте --segs N")
+    ld = json.load(io.open(local, encoding="utf-8"))
+    expect_segs = sum(len(c["segs"]) for c in ld["chapters"])
+    print("ожидаемое число сегментов из локального data.json: %d" % expect_segs)
+
 fails = []
 
 
@@ -35,8 +60,9 @@ segs = [s for c in d["chapters"] for s in c["segs"]]
 with_tr = sum(1 for s in segs if all(g.get("tr") for g in s["groups"]))
 print("data.json: built=%s, chapters=%d, segs=%d, segs with full tr=%d"
       % (d["meta"].get("built"), len(d["chapters"]), len(segs), with_tr))
-check(len(segs) == 176, "176 сегментов в data.json")
-check(with_tr == 176, "транслит есть во всех 176 сегментах (факт: %d)" % with_tr)
+check(len(segs) == expect_segs, "%d сегментов в data.json (факт: %d)" % (expect_segs, len(segs)))
+check(with_tr == expect_segs, "транслит есть во всех %d сегментах (факт: %d)" % (expect_segs, with_tr))
+check(any(s.get("id") == seg for s in segs), "сегмент %s есть в data.json" % seg)
 
 # 2. Браузер
 errors = []
@@ -45,27 +71,27 @@ with browser.open_context(profile) as ctx:
     page.set_viewport_size({"width": 1280, "height": 860})
     page.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
     page.on("pageerror", lambda e: errors.append(str(e)))
-    browser.goto(page, url + "#11.4", wait_until="networkidle")
-    page.wait_for_selector("p.seg#s11\\.4", timeout=30000)
+    browser.goto(page, url + "#" + seg, wait_until="networkidle")
+    page.wait_for_selector(sel, timeout=30000)
     page.wait_for_timeout(800)
 
-    st = page.evaluate("""() => {
+    st = page.evaluate("""(sel) => {
       const a = document.querySelector('nav.toc a.active');
       const open = [...document.querySelectorAll('nav.toc .ch.open')].map(e => e.dataset.chap);
-      const seg = document.querySelector('p.seg#s11\\\\.4');
+      const seg = document.querySelector(sel);
       const r = seg.getBoundingClientRect(); const m = document.getElementById('main').getBoundingClientRect();
       return {active: a && a.dataset.seg, open, segTop: r.top - m.top, hash: location.hash,
               lang: document.body.classList.contains('he') ? 'he' : 'ru'};
-    }""")
+    }""", sel)
     print("state after load:", st)
-    check(st["active"] == "11.4", "активный пункт меню = § 11.4 (факт: %s)" % st["active"])
-    check(st["open"] == ["11"], "раскрыта только глава 11 (факт: %s)" % st["open"])
-    check(-5 <= st["segTop"] <= 120, "сегмент 11.4 в верхней части фрейма (top=%s)" % st["segTop"])
+    check(st["active"] == seg, "активный пункт меню = § %s (факт: %s)" % (seg, st["active"]))
+    check(st["open"] == [chap], "раскрыта только глава %s (факт: %s)" % (chap, st["open"]))
+    check(-5 <= st["segTop"] <= 120, "сегмент %s в верхней части фрейма (top=%s)" % (seg, st["segTop"]))
     check(st["lang"] == "ru", "режим RU по умолчанию")
 
-    # 3. Попап по Shift над третьим словом первой группы § 11.4
-    w = page.query_selector("p.seg#s11\\.4 .grp .w[data-i='2']")
-    check(w is not None, "в § 11.4 есть обёрнутые слова .w")
+    # 3. Попап по Shift над третьим словом первой группы § seg
+    w = page.query_selector(sel + " .grp .w[data-i='2']")
+    check(w is not None, "в § %s есть обёрнутые слова .w" % seg)
     box = w.bounding_box()
     page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
     page.keyboard.down("Shift")
@@ -97,13 +123,13 @@ with browser.open_context(profile) as ctx:
     # 4. HE-режим
     page.click("#btn-he")
     page.wait_for_timeout(500)
-    he = page.evaluate("""() => ({he: document.body.classList.contains('he'),
+    he = page.evaluate("""(sel) => ({he: document.body.classList.contains('he'),
         dir: getComputedStyle(document.querySelector('article')).direction,
-        txt: document.querySelector('p.seg#s11\\\\.4').textContent.slice(0, 40),
-        hash: location.hash})""")
+        txt: document.querySelector(sel).textContent.slice(0, 40),
+        hash: location.hash})""", sel)
     print("he mode:", he)
     check(he["he"] and he["dir"] == "rtl", "HE-режим: RTL")
-    check(any("\u05d0" <= ch <= "\u05ea" for ch in he["txt"]), "HE-режим: в § 11.4 ивритский текст")
+    check(any("\u05d0" <= ch <= "\u05ea" for ch in he["txt"]), "HE-режим: в § %s ивритский текст" % seg)
     page.click("#btn-ru")
     page.wait_for_timeout(300)
 

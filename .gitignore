@@ -13,3 +13,7 @@ dev_run*.err
 PROJECT.md
 REPORT_tz*.md
 _shots/
+# операторские запускалки/логи
+dev_run*
+# временные файлы отладки
+.tmp/

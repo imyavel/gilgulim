@@ -13,7 +13,7 @@ RU_PATH = r"C:\Users\admin\gilgulim\translation.md"
 HE_PATH = r"C:\Users\admin\gilgulim\source\gilgulim_he.md"
 GLOSSARY_PATH = r"C:\Users\admin\gilgulim\glossary.md"
 
-TRANSLATED_UPTO = 18  # переведены хакдамот 1..18
+TRANSLATED_UPTO = 35  # переведены хакдамот 1..35
 
 RU_CHAP = re.compile(r"^##\s+Хакдама\s+(\d+)\s*$")
 HE_CHAP = re.compile(r"^##\s+Hakdamah\s+(\d+)\s*$")
@@ -23,6 +23,7 @@ HE_SEG = re.compile(r"^\[(\d+)\.(\d+)\]\s*")
 
 def norm_ws(s):
     """Нормализация пробелов для сверки целостности."""
+    s = re.sub(r"<!--.*?-->", "", s, flags=re.S)  # пометки переводчика (<!-- TODO -->) на сайт не идут
     s = s.replace("\u00a0", " ").replace("\u202f", " ")
     return re.sub(r"\s+", " ", s).strip()
 
