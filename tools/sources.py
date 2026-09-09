@@ -27,6 +27,11 @@ def norm_ws(s):
     return re.sub(r"\s+", " ", s).strip()
 
 
+def norm_chars(s):
+    """Сверка целостности: только символы, пробелы не в счёт (куски вырезаны из источника)."""
+    return re.sub(r"\s+", "", s)
+
+
 def _parse(path, chap_re, seg_re, upto):
     """Возвращает OrderedDict-подобный список [(n, [(sid, text), ...]), ...]."""
     with io.open(path, encoding="utf-8") as f:

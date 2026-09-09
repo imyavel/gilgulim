@@ -71,7 +71,21 @@ def snap(seg_text, group_texts, tok_fn, word_fn):
     for gi, ws in enumerate(gwords):
         if not ws:
             return None, u"группа %d пустая" % gi
-        starts.append(0 if gi == 0 else toks[cum][1])
+        if gi == 0:
+            starts.append(0)
+        else:
+            # Начало группы — не позиция первого слова, а начало «пачки»: сдвигаем
+            # влево через висящую пунктуацию («(Глосса», „Слово, —слово) до пробела,
+            # иначе она осталась бы в предыдущем куске и склейка не сошлась бы.
+            start = toks[cum][1]
+            while start > 0 and not seg_text[start - 1].isspace():
+                start -= 1
+            prev_end = toks[cum - 1][1] + len(toks[cum - 1][0])
+            if start <= prev_end:
+                chunk = seg_text[start:toks[cum][1] + len(toks[cum][0])]
+                return None, (u"граница групп %d/%d внутри слитной цепочки «%s»; "
+                              u"границу ставить только по пробелу" % (gi - 1, gi, chunk))
+            starts.append(start)
         for k, w in enumerate(ws):
             src = toks[cum + k][0]
             if src != w:
@@ -85,7 +99,7 @@ def snap(seg_text, group_texts, tok_fn, word_fn):
         if not piece:
             return None, u"группа %d после нарезки пустая" % gi
         out.append(piece)
-    if sources.norm_ws(" ".join(out)) != sources.norm_ws(seg_text):
+    if sources.norm_chars("".join(out)) != sources.norm_chars(seg_text):
         return None, u"склейка групп не совпала с сегментом"
     return out, None
 

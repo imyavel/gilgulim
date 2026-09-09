@@ -22,9 +22,9 @@ OUT = os.path.join(ROOT, "data.json")
 def check_groups(sid, ru_text, he_text, groups):
     """Целостность: склейка групп == исходный текст; счётчики слов сходятся."""
     errs = []
-    if sources.norm_ws(" ".join(g["ru"] for g in groups)) != sources.norm_ws(ru_text):
+    if sources.norm_chars("".join(g["ru"] for g in groups)) != sources.norm_chars(ru_text):
         errs.append(u"склейка ru не совпала с переводом")
-    if sources.norm_ws(" ".join(g["he"] for g in groups)) != sources.norm_ws(he_text):
+    if sources.norm_chars("".join(g["he"] for g in groups)) != sources.norm_chars(he_text):
         errs.append(u"склейка he не совпала с оригиналом")
     for gi, g in enumerate(groups):
         hw = sources.he_words(g["he"])
