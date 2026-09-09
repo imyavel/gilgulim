@@ -1,0 +1,15 @@
+# мусор
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+# логи прогонов LLM (сырые ответы claude -p)
+data/raw/
+
+# операторские файлы задания (не часть сайта)
+tz*.md
+dev_run*.json
+dev_run*.err
+PROJECT.md
+REPORT_tz*.md
+_shots/

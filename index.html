@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Врата кругооборотов · Шаар ѓа-Гилгулим</title>
+<meta name="description" content="Русский перевод книги «Шаар ѓа-Гилгулим» р. Хаима Виталя по учению АРИ, с ивритским оригиналом и пословной транслитерацией.">
+<link rel="canonical" href="https://imyavel.github.io/gilgulim/">
+<meta name="theme-color" content="#6b2d5c">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Будущий Мир">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="Врата кругооборотов · Шаар ѓа-Гилгулим">
+<meta property="og:description" content="Русский перевод книги «Шаар ѓа-Гилгулим» р. Хаима Виталя по учению АРИ, с ивритским оригиналом и пословной транслитерацией.">
+<meta property="og:url" content="https://imyavel.github.io/gilgulim/">
+<style>
+:root {
+  --fg: #1a1a1a;
+  --muted: #666;
+  --accent: #6b2d5c;
+  --bg: #fdfcf7;
+  --card: #fff;
+  --border: #e0dbce;
+  --side: #f7f4ea;
+  --mark: #f0d9a8;
+  --mark2: #f6ecd2;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--fg);
+  background: var(--bg);
+  overflow: hidden;
+}
+.layout { display: flex; height: 100vh; }
+
+/* ---------------------------------------------------------- левая панель */
+#side {
+  width: 280px;
+  flex: 0 0 280px;
+  background: var(--side);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1.2rem 0 3rem;
+}
+#side .head { padding: 0 1rem 1rem; border-bottom: 1px solid var(--border); }
+#side h1 {
+  font-size: 1.15rem;
+  font-weight: normal;
+  color: var(--accent);
+  margin: 0 0 0.35rem;
+  line-height: 1.3;
+}
+#side .sub { font-size: 0.8rem; color: var(--muted); line-height: 1.4; margin-bottom: 0.7rem; }
+#side .back { font-size: 0.8rem; color: var(--muted); text-decoration: none; }
+#side .back:hover { color: var(--accent); text-decoration: underline; }
+
+.langs { display: flex; gap: 0.5rem; padding: 0.9rem 1rem; border-bottom: 1px solid var(--border); }
+.langs button {
+  flex: 1;
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 0.35rem 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--card);
+  color: var(--muted);
+  cursor: pointer;
+}
+.langs button:hover { border-color: var(--accent); color: var(--accent); }
+.langs button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* оглавление */
+nav.toc { padding: 0.4rem 0 0; }
+nav.toc .ch { border-bottom: 1px dashed var(--border); }
+nav.toc .ch > button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: 0.5rem 1rem;
+  border: 0;
+  background: none;
+  color: var(--fg);
+  cursor: pointer;
+}
+nav.toc .ch > button:hover { color: var(--accent); }
+nav.toc .ch.open > button { color: var(--accent); }
+nav.toc .ch.cur > button { font-weight: bold; }
+nav.toc ul { list-style: none; margin: 0; padding: 0 0 0.4rem; display: none; }
+nav.toc .ch.open ul { display: block; }
+nav.toc li a {
+  display: block;
+  padding: 0.18rem 1rem 0.18rem 1.9rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-decoration: none;
+  scroll-margin: 3rem 0;
+}
+nav.toc li a:hover { color: var(--accent); background: #efe9dd; }
+nav.toc li a.active { color: var(--accent); background: #ece3d2; font-weight: bold; }
+
+/* ------------------------------------------------------------ основной фрейм */
+#main {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+  padding: 2rem 1.5rem 60vh;
+}
+article { max-width: 760px; margin: 0 auto; }
+article h2 {
+  font-size: 1.4rem;
+  font-weight: normal;
+  color: var(--accent);
+  margin: 2.4rem 0 1rem;
+  padding-top: 0.6rem;
+  scroll-margin-top: 1rem;
+}
+article h2:first-child { margin-top: 0; }
+p.seg { margin: 0 0 1.15rem; text-align: justify; scroll-margin-top: 1rem; }
+p.seg .lbl { color: #b3aa96; font-size: 0.78rem; margin-right: 0.25rem; vertical-align: 0.15em; }
+.end-note {
+  margin: 3rem 0 0;
+  padding: 1rem 1.2rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  text-align: center;
+}
+.loading { color: var(--muted); text-align: center; padding: 3rem 0; }
+
+/* ивритский режим */
+body.he article { direction: rtl; text-align: right; }
+body.he p.seg {
+  font-family: 'David', 'Frank Ruehl CLM', 'Times New Roman', serif;
+  font-size: 22px;
+  line-height: 1.85;
+  text-align: right;
+}
+body.he p.seg .lbl { direction: ltr; unicode-bidi: embed; margin-left: 0.25rem; margin-right: 0; }
+body.he article h2 { text-align: right; }
+
+/* подсветка слова под курсором (только режим RU) */
+.w.hot { background: var(--mark2); border-radius: 2px; }
+
+/* ------------------------------------------------------------------ попап */
+#pop {
+  position: absolute;
+  z-index: 30;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.13);
+  padding: 0.7rem 0.9rem;
+  display: none;
+  max-height: 42vh;
+  overflow-y: auto;
+}
+#pop.on { display: block; }
+#pop .he {
+  direction: rtl;
+  text-align: right;
+  font-family: 'David', 'Frank Ruehl CLM', 'Times New Roman', serif;
+  font-size: 21px;
+  line-height: 1.75;
+}
+#pop .tr {
+  direction: ltr;
+  text-align: left;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #4a4a4a;
+  border-top: 1px solid var(--border);
+  margin-top: 0.55rem;
+  padding-top: 0.55rem;
+}
+#pop .hw.hit, #pop .tw.hit { background: var(--mark); border-radius: 2px; }
+
+/* ------------------------------------------------------------ узкий экран */
+#burger {
+  display: none;
+  position: fixed;
+  top: 0.6rem;
+  left: 0.6rem;
+  z-index: 40;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 0.4rem 0.6rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--accent);
+  cursor: pointer;
+}
+#veil { display: none; }
+@media (max-width: 900px) {
+  #burger { display: block; }
+  #side {
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    z-index: 45;
+    transform: translateX(-100%);
+    transition: transform 0.18s ease-out;
+    box-shadow: 0 0 20px rgba(0,0,0,0.15);
+  }
+  body.menu #side { transform: none; }
+  body.menu #veil {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 44;
+    background: rgba(0,0,0,0.25);
+  }
+  #main { padding: 3.2rem 1rem 60vh; }
+  body { font-size: 17px; }
+}
+</style>
+</head>
+<body>
+<button id="burger" title="Оглавление">☰</button>
+<div id="veil"></div>
+<div class="layout">
+  <aside id="side">
+    <div class="head">
+      <h1>Врата кругооборотов</h1>
+      <div class="sub">Шаар ѓа-Гилгулим · р. Хаим Виталь по учению АРИ</div>
+      <a class="back" href="../">← imyavel.github.io</a>
+    </div>
+    <div class="langs">
+      <button id="btn-ru" class="on" data-lang="ru">RU</button>
+      <button id="btn-he" data-lang="he">HE</button>
+    </div>
+    <nav class="toc" id="toc"></nav>
+  </aside>
+  <main id="main">
+    <article id="art"><p class="loading">Загрузка…</p></article>
+    <div id="pop"><div class="he"></div><div class="tr"></div></div>
+  </main>
+</div>
+
+<script>
+"use strict";
+(function () {
+  var main = document.getElementById("main");
+  var art = document.getElementById("art");
+  var toc = document.getElementById("toc");
+  var pop = document.getElementById("pop");
+  var popHe = pop.querySelector(".he");
+  var popTr = pop.querySelector(".tr");
+
+  var DATA = null;
+  var GROUPS = {};          // "1.2:0" -> {he, tr, ru, map}
+  var lang = localStorage.getItem("gilgulim-lang") === "he" ? "he" : "ru";
+  var curSeg = null, curChap = null, collapsed = false;
+
+  // Слово: буквы/цифры, склеенные дефисом, апострофом или гершаимом.
+  // Та же логика, что в tools/sources.py (RU_WORD) — от неё зависит индексация map.
+  var WORD = /[\p{L}\p{N}]+(?:["'’ʼ‑-][\p{L}\p{N}]+)*/gu;
+
+  function esc(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  /* Оборачивает слова в <span class="w" data-i>, пунктуацию оставляет снаружи. */
+  function wrapWords(text, cls) {
+    var out = "", last = 0, i = 0, m;
+    WORD.lastIndex = 0;
+    while ((m = WORD.exec(text)) !== null) {
+      out += esc(text.slice(last, m.index));
+      out += '<span class="' + cls + '" data-i="' + i + '">' + esc(m[0]) + "</span>";
+      last = m.index + m[0].length;
+      i++;
+    }
+    return out + esc(text.slice(last));
+  }
+
+  /* Иврит и транслит режутся по пробелам — счёт слов совпадает с data.json. */
+  function wrapSpaced(text, cls) {
+    var parts = text.split(/\s+/).filter(Boolean);
+    return parts.map(function (w, i) {
+      return '<span class="' + cls + '" data-i="' + i + '">' + esc(w) + "</span>";
+    }).join(" ");
+  }
+
+  // ------------------------------------------------------------- рендер
+  function render() {
+    document.body.classList.toggle("he", lang === "he");
+    var html = [];
+    GROUPS = {};
+    DATA.chapters.forEach(function (ch) {
+      html.push('<h2 id="h' + ch.n + '" data-chap="' + ch.n + '">' + esc(ch.title) + "</h2>");
+      ch.segs.forEach(function (seg) {
+        var body = [];
+        seg.groups.forEach(function (g, gi) {
+          var key = seg.id + ":" + gi;
+          GROUPS[key] = g;
+          if (lang === "ru") {
+            body.push('<span class="grp" data-g="' + key + '">' + wrapWords(g.ru, "w") + "</span>");
+          } else {
+            body.push(esc(g.he));
+          }
+        });
+        html.push('<p class="seg" id="s' + seg.id + '" data-seg="' + seg.id + '" data-chap="' + ch.n + '">' +
+          '<span class="lbl">[' + seg.id + "]</span> " + body.join(" ") + "</p>");
+      });
+    });
+    html.push('<p class="end-note">' + esc(DATA.meta.note_end) + "</p>");
+    art.innerHTML = html.join("\n");
+  }
+
+  function renderToc() {
+    var html = [];
+    DATA.chapters.forEach(function (ch) {
+      var items = ch.segs.map(function (seg) {
+        return '<li><a href="#' + seg.id + '" data-seg="' + seg.id + '">§ ' + seg.id + "</a></li>";
+      }).join("");
+      html.push('<div class="ch" data-chap="' + ch.n + '">' +
+        '<button type="button" data-chap="' + ch.n + '">' + esc(ch.title) + "</button>" +
+        "<ul>" + items + "</ul></div>");
+    });
+    toc.innerHTML = html.join("");
+  }
+
+  // ------------------------------------------------- активная глава/сегмент
+  function setActive(segId) {
+    if (segId === curSeg) return;
+    curSeg = segId;
+    var chap = parseInt(segId.split(".")[0], 10);
+    if (chap !== curChap) {
+      curChap = chap;
+      collapsed = false;           // ушли в другую главу — сворачивание сбрасывается
+    }
+    Array.prototype.forEach.call(toc.querySelectorAll(".ch"), function (el) {
+      var n = parseInt(el.dataset.chap, 10);
+      el.classList.toggle("cur", n === curChap);
+      el.classList.toggle("open", n === curChap && !collapsed);
+    });
+    Array.prototype.forEach.call(toc.querySelectorAll("a"), function (a) {
+      var on = a.dataset.seg === segId;
+      a.classList.toggle("active", on);
+      if (on && !collapsed) a.scrollIntoView({ block: "nearest" });
+    });
+    if (history.replaceState) history.replaceState(null, "", "#" + segId);
+  }
+
+  /* Активен последний сегмент, начавшийся выше верхней трети фрейма. */
+  function spy() {
+    var top = main.getBoundingClientRect().top;
+    var line = top + main.clientHeight / 3;
+    var segs = art.querySelectorAll("p.seg");
+    var found = null;
+    for (var i = 0; i < segs.length; i++) {
+      if (segs[i].getBoundingClientRect().top <= line) found = segs[i];
+      else break;
+    }
+    if (!found && segs.length) found = segs[0];
+    if (found) setActive(found.dataset.seg);
+  }
+
+  var spying = false;
+  main.addEventListener("scroll", function () {
+    if (spying) return;
+    spying = true;
+    requestAnimationFrame(function () { spying = false; spy(); });
+    hidePop(0);
+  });
+
+  function goto(segId, smooth) {
+    var el = document.getElementById("s" + segId);
+    if (!el) return;
+    el.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
+    setActive(segId);
+  }
+
+  // --------------------------------------------------------------- события
+  toc.addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-chap]");
+    if (btn) {
+      var n = parseInt(btn.dataset.chap, 10);
+      var box = toc.querySelector('.ch[data-chap="' + n + '"]');
+      if (n === curChap) {
+        collapsed = !collapsed;                 // клик по текущей — свернуть/развернуть
+        box.classList.toggle("open", !collapsed);
+      } else {
+        collapsed = false;
+        var first = DATA.chapters.filter(function (c) { return c.n === n; })[0].segs[0];
+        goto(first.id, true);
+      }
+      return;
+    }
+    var a = e.target.closest("a[data-seg]");
+    if (a) {
+      e.preventDefault();
+      goto(a.dataset.seg, true);
+      if (window.matchMedia("(max-width: 900px)").matches) document.body.classList.remove("menu");
+    }
+  });
+
+  document.querySelector(".langs").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-lang]");
+    if (!b || b.dataset.lang === lang) return;
+    lang = b.dataset.lang;
+    localStorage.setItem("gilgulim-lang", lang);
+    document.getElementById("btn-ru").classList.toggle("on", lang === "ru");
+    document.getElementById("btn-he").classList.toggle("on", lang === "he");
+    var keep = curSeg;
+    hidePop(0);
+    render();
+    if (keep) goto(keep, false);
+  });
+
+  document.getElementById("burger").addEventListener("click", function () {
+    document.body.classList.toggle("menu");
+  });
+  document.getElementById("veil").addEventListener("click", function () {
+    document.body.classList.remove("menu");
+  });
+
+  // ----------------------------------------------------------------- попап
+  var popGroup = null, hideTimer = null, lastEvent = null;
+
+  function hidePop(delay) {
+    clearTimeout(hideTimer);
+    if (delay) {
+      hideTimer = setTimeout(function () { pop.classList.remove("on"); popGroup = null; }, delay);
+    } else {
+      pop.classList.remove("on");
+      popGroup = null;
+    }
+  }
+
+  function showPop(grp) {
+    clearTimeout(hideTimer);
+    var g = GROUPS[grp.dataset.g];
+    if (!g) return;
+    if (popGroup !== grp.dataset.g) {
+      popGroup = grp.dataset.g;
+      popHe.innerHTML = wrapSpaced(g.he, "hw");
+      popTr.innerHTML = g.tr ? wrapSpaced(g.tr, "tw") : '<span class="tw">(транслитерация недоступна)</span>';
+    }
+    pop.classList.add("on");
+    place(grp);
+  }
+
+  function place(grp) {
+    var mrect = main.getBoundingClientRect();
+    var grect = grp.getBoundingClientRect();
+    var col = art.getBoundingClientRect();
+    pop.style.width = Math.min(col.width, mrect.width - 24) + "px";
+    pop.style.left = (col.left - mrect.left + main.scrollLeft) + "px";
+    var above = grect.top - mrect.top;
+    var below = mrect.bottom - grect.bottom;
+    var h = pop.offsetHeight;
+    var top;
+    if (below >= above) {
+      top = grect.bottom - mrect.top + main.scrollTop + 8;
+    } else {
+      top = grect.top - mrect.top + main.scrollTop - h - 8;
+    }
+    pop.style.top = Math.max(0, top) + "px";
+  }
+
+  function markWord(wEl) {
+    Array.prototype.forEach.call(art.querySelectorAll(".w.hot"), function (e) { e.classList.remove("hot"); });
+    Array.prototype.forEach.call(pop.querySelectorAll(".hit"), function (e) { e.classList.remove("hit"); });
+    if (!wEl) return;
+    var grp = wEl.closest(".grp");
+    if (!grp) return;
+    var g = GROUPS[grp.dataset.g];
+    if (!g) return;
+    wEl.classList.add("hot");
+    var j = g.map[parseInt(wEl.dataset.i, 10)];
+    if (j === undefined || j === null || j < 0) return;
+    var hw = popHe.querySelector('.hw[data-i="' + j + '"]');
+    var tw = popTr.querySelector('.tw[data-i="' + j + '"]');
+    if (hw) hw.classList.add("hit");
+    if (tw) tw.classList.add("hit");
+  }
+
+  function handle(e) {
+    lastEvent = e;
+    if (lang !== "ru") return;
+    if (!e.shiftKey) {
+      if (pop.classList.contains("on")) { hidePop(0); markWord(null); }
+      return;
+    }
+    var el = document.elementFromPoint(e.clientX, e.clientY);
+    var grp = el && el.closest ? el.closest(".grp") : null;
+    if (!grp) { hidePop(150); markWord(null); return; }
+    showPop(grp);
+    markWord(el.closest(".w"));
+  }
+
+  main.addEventListener("mousemove", handle);
+  main.addEventListener("mouseleave", function () { hidePop(150); markWord(null); });
+  document.addEventListener("keydown", function (e) {
+    // Shift нажали, когда курсор уже стоит над текстом
+    if (e.key === "Shift" && lastEvent) handle(Object.assign({}, {
+      clientX: lastEvent.clientX, clientY: lastEvent.clientY, shiftKey: true
+    }));
+  });
+  document.addEventListener("keyup", function (e) {
+    if (e.key === "Shift") { hidePop(0); markWord(null); }
+  });
+  window.addEventListener("blur", function () { hidePop(0); markWord(null); });
+
+  // ------------------------------------------------------------------ старт
+  fetch("data.json").then(function (r) {
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }).then(function (d) {
+    DATA = d;
+    document.getElementById("btn-ru").classList.toggle("on", lang === "ru");
+    document.getElementById("btn-he").classList.toggle("on", lang === "he");
+    render();
+    renderToc();
+    var h = decodeURIComponent(location.hash.replace(/^#/, ""));
+    if (h && document.getElementById("s" + h)) goto(h, false);
+    else spy();
+  }).catch(function (err) {
+    art.innerHTML = '<p class="loading">Не удалось загрузить data.json: ' + esc(String(err)) + "</p>";
+  });
+})();
+</script>
+</body>
+</html>
