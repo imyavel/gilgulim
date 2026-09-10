@@ -237,7 +237,9 @@ body.he article h2 { text-align: right; }
     z-index: 44;
     background: rgba(0,0,0,0.25);
   }
-  #main { padding: 3.2rem 1rem 60vh; }
+  /* текст начинается правее гамбургера: он висит в левом верхнем углу и
+     закрывал номер параграфа, к которому только что перешли */
+  #main { padding: 1.2rem 1rem 60vh 3.6rem; }
   body { font-size: 17px; }
   /* пальцевые цели: на телефоне пункт оглавления был ~24 px — мимо него
      легко промахнуться, отсюда «клик не срабатывает» */
@@ -477,13 +479,13 @@ body.he article h2 { text-align: right; }
   document.addEventListener("keydown", unlock);
 
   // --------------------------------------------------------------- события
-  toc.addEventListener("click", function (e) {
-    var btn = e.target.closest("button[data-chap]");
-    if (btn) {
-      var n = parseInt(btn.dataset.chap, 10);
+  /* Одно действие по пункту оглавления — от мыши или от пальца. */
+  function activate(el) {
+    if (el.tagName === "BUTTON") {
+      var n = parseInt(el.dataset.chap, 10);
       var box = toc.querySelector('.ch[data-chap="' + n + '"]');
       if (n === curChap) {
-        collapsed = !collapsed;                 // клик по текущей — свернуть/развернуть
+        collapsed = !collapsed;               // тап по текущей — свернуть/развернуть
         box.classList.toggle("open", !collapsed);
         renderMark();
       } else {
@@ -492,17 +494,49 @@ body.he article h2 { text-align: right; }
       }
       return;
     }
-    var a = e.target.closest("a[data-seg]");
-    if (a) {
-      e.preventDefault();
-      var seg = a.dataset.seg;
-      var chosen = (seg === curSeg);        // пункт уже выбран — второй клик по нему
-      goto(seg, true);
-      if (chosen) toggleMark(seg);          // первый клик только переводит, галку не ставит
-      // меню закрывается только на переходе; когда клик ставит или снимает
-      // галку — остаётся открытым, чтобы читатель видел результат
-      else if (narrow()) document.body.classList.remove("menu");
-    }
+    var seg = el.dataset.seg;
+    var chosen = (seg === curSeg);            // пункт уже выбран — второй тап по нему
+    goto(seg, true);
+    if (chosen) toggleMark(seg);              // первый тап только переводит, галку не ставит
+    // меню закрывается только на переходе; когда тап ставит или снимает
+    // галку — остаётся открытым, чтобы читатель видел результат
+    else if (narrow()) document.body.classList.remove("menu");
+  }
+
+  var HIT = "a[data-seg], button[data-chap]";
+  var side = document.getElementById("side");
+  var tapStart = null, lastTap = 0;
+
+  toc.addEventListener("click", function (e) {
+    if (Date.now() - lastTap < 600) { e.preventDefault(); return; }   // уже сработало по тапу
+    var el = e.target.closest(HIT);
+    if (!el) return;
+    e.preventDefault();
+    activate(el);
+  });
+
+  /* Палец почти всегда чуть смещается, а Chrome при сдвиге больше ~10 px
+     считает жест скроллом панели и click не присылает — на телефоне из-за
+     этого срабатывал примерно один тап из пяти. Поэтому тап ловим сами:
+     учитываем как тап, если панель не прокрутилась и палец не уехал. */
+  toc.addEventListener("pointerdown", function (e) {
+    if (e.pointerType === "mouse") return;
+    tapStart = { x: e.clientX, y: e.clientY, t: Date.now(),
+                 top: side.scrollTop, el: e.target.closest(HIT) };
+  });
+  toc.addEventListener("pointercancel", function () { tapStart = null; });
+  toc.addEventListener("pointerup", function (e) {
+    if (e.pointerType === "mouse") return;
+    var s = tapStart;
+    tapStart = null;
+    if (!s || !s.el) return;
+    if (Math.abs(side.scrollTop - s.top) > 2) return;                  // прокрутка списка
+    if (Math.abs(e.clientX - s.x) > 20 || Math.abs(e.clientY - s.y) > 20) return;
+    if (Date.now() - s.t > 700) return;                                // долгое нажатие
+    if (e.target.closest(HIT) !== s.el) return;                        // палец ушёл с пункта
+    lastTap = Date.now();
+    e.preventDefault();
+    activate(s.el);
   });
 
   document.querySelector(".langs").addEventListener("click", function (e) {
