@@ -80,6 +80,7 @@ body {
 /* оглавление */
 nav.toc { padding: 0.4rem 0 0; }
 nav.toc .ch { border-bottom: 1px dashed var(--border); }
+nav.toc a, nav.toc button { touch-action: manipulation; }   /* без задержки двойного тапа */
 nav.toc .ch > button {
   display: block;
   width: 100%;
@@ -238,6 +239,11 @@ body.he article h2 { text-align: right; }
   }
   #main { padding: 3.2rem 1rem 60vh; }
   body { font-size: 17px; }
+  /* пальцевые цели: на телефоне пункт оглавления был ~24 px — мимо него
+     легко промахнуться, отсюда «клик не срабатывает» */
+  nav.toc .ch > button { padding: 0.85rem 1rem; font-size: 1rem; }
+  nav.toc li a { padding: 0.62rem 1rem 0.62rem 1.9rem; font-size: 0.95rem; }
+  nav.toc li a.marked, nav.toc .ch > button.marked { padding-right: 2.4rem; }
 }
 </style>
 </head>
@@ -282,6 +288,10 @@ body.he article h2 { text-align: right; }
   // Слово: буквы/цифры, склеенные дефисом, апострофом или гершаимом.
   // Та же логика, что в tools/sources.py (RU_WORD) — от неё зависит индексация map.
   var WORD = /[\p{L}\p{N}]+(?:["'’ʼ‑-][\p{L}\p{N}]+)*/gu;
+
+  function narrow() {                        // телефонная раскладка с гамбургером
+    return window.matchMedia("(max-width: 900px)").matches;
+  }
 
   function esc(s) {
     return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -449,7 +459,8 @@ body.he article h2 { text-align: right; }
       target = document.getElementById("h" + n) || el;
     }
     lockOn();
-    target.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
+    // на телефоне плавную анимацию гасит любое касание экрана — переходим сразу
+    target.scrollIntoView({ behavior: (smooth && !narrow()) ? "smooth" : "auto", block: "start" });
     setActive(segId);
   }
 
@@ -488,7 +499,9 @@ body.he article h2 { text-align: right; }
       var chosen = (seg === curSeg);        // пункт уже выбран — второй клик по нему
       goto(seg, true);
       if (chosen) toggleMark(seg);          // первый клик только переводит, галку не ставит
-      if (window.matchMedia("(max-width: 900px)").matches) document.body.classList.remove("menu");
+      // меню закрывается только на переходе; когда клик ставит или снимает
+      // галку — остаётся открытым, чтобы читатель видел результат
+      else if (narrow()) document.body.classList.remove("menu");
     }
   });
 
