@@ -515,29 +515,31 @@ body.he article h2 { text-align: right; }
     activate(el);
   });
 
-  /* Палец почти всегда чуть смещается, а Chrome при сдвиге больше ~10 px
-     считает жест скроллом панели и click не присылает — на телефоне из-за
-     этого срабатывал примерно один тап из пяти. Поэтому тап ловим сами:
-     учитываем как тап, если панель не прокрутилась и палец не уехал. */
-  toc.addEventListener("pointerdown", function (e) {
-    if (e.pointerType === "mouse") return;
-    tapStart = { x: e.clientX, y: e.clientY, t: Date.now(),
+  /* Палец почти всегда чуть смещается, а Chrome от сдвига больше ~10 px
+     начинает считать жест прокруткой панели: шлёт pointercancel и не
+     присылает click — на телефоне срабатывал примерно один тап из пяти
+     (замерено на устройстве). Поэтому тап определяем сами по касанию:
+     одно касание, палец не уехал, панель не прокрутилась, нажатие короткое. */
+  toc.addEventListener("touchstart", function (e) {
+    if (e.touches.length !== 1) { tapStart = null; return; }
+    var t = e.touches[0];
+    tapStart = { x: t.clientX, y: t.clientY, t: Date.now(),
                  top: side.scrollTop, el: e.target.closest(HIT) };
-  });
-  toc.addEventListener("pointercancel", function () { tapStart = null; });
-  toc.addEventListener("pointerup", function (e) {
-    if (e.pointerType === "mouse") return;
+  }, { passive: true });
+  toc.addEventListener("touchcancel", function () { tapStart = null; });
+  toc.addEventListener("touchend", function (e) {
     var s = tapStart;
     tapStart = null;
-    if (!s || !s.el) return;
-    if (Math.abs(side.scrollTop - s.top) > 2) return;                  // прокрутка списка
-    if (Math.abs(e.clientX - s.x) > 20 || Math.abs(e.clientY - s.y) > 20) return;
-    if (Date.now() - s.t > 700) return;                                // долгое нажатие
-    if (e.target.closest(HIT) !== s.el) return;                        // палец ушёл с пункта
+    if (!s || !s.el || e.changedTouches.length !== 1) return;
+    var t = e.changedTouches[0];
+    if (Math.abs(t.clientX - s.x) > 30 || Math.abs(t.clientY - s.y) > 30) return;  // жест-прокрутка
+    if (Math.abs(side.scrollTop - s.top) > 10) return;                             // список уехал
+    if (Date.now() - s.t > 700) return;                                            // долгое нажатие
+    if (e.target.closest(HIT) !== s.el) return;                                    // палец ушёл с пункта
     lastTap = Date.now();
-    e.preventDefault();
+    e.preventDefault();                       // гасим синтетический click следом
     activate(s.el);
-  });
+  }, { passive: false });
 
   document.querySelector(".langs").addEventListener("click", function (e) {
     var b = e.target.closest("button[data-lang]");
