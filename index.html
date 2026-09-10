@@ -25,6 +25,7 @@
   --side: #f7f4ea;
   --mark: #f0d9a8;
   --mark2: #f6ecd2;
+  --ok: #2e8b40;
 }
 * { box-sizing: border-box; }
 html, body { height: 100%; }
@@ -106,6 +107,21 @@ nav.toc li a {
 }
 nav.toc li a:hover { color: var(--accent); background: #efe9dd; }
 nav.toc li a.active { color: var(--accent); background: #ece3d2; font-weight: bold; }
+
+/* галка выбранного пункта: на параграфе, а если его глава свёрнута — на главе */
+nav.toc li a, nav.toc .ch > button { position: relative; }
+nav.toc li a.marked, nav.toc .ch > button.marked { padding-right: 2rem; }
+nav.toc li a.marked::after, nav.toc .ch > button.marked::after {
+  content: "✓";
+  position: absolute;
+  right: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ok);
+  font-weight: bold;
+  font-size: 1rem;
+  line-height: 1;
+}
 
 /* ------------------------------------------------------------ основной фрейм */
 #main {
@@ -261,6 +277,7 @@ body.he article h2 { text-align: right; }
   var GROUPS = {};          // "1.2:0" -> {he, tr, ru, map}
   var lang = localStorage.getItem("gilgulim-lang") === "he" ? "he" : "ru";
   var curSeg = null, curChap = null, collapsed = false;
+  var markSeg = localStorage.getItem("gilgulim-mark") || null;   // отметка читателя
 
   // Слово: буквы/цифры, склеенные дефисом, апострофом или гершаимом.
   // Та же логика, что в tools/sources.py (RU_WORD) — от неё зависит индексация map.
@@ -330,6 +347,29 @@ body.he article h2 { text-align: right; }
     toc.innerHTML = html.join("");
   }
 
+  // ------------------------------------------------------- отметка (галка)
+  /* Ставится кликом по пункту оглавления, одна на всю книгу, живёт в
+     localStorage. Привязана к параграфу; если его глава свёрнута —
+     показывается на строке главы. Скроллинг её не меняет. */
+  function renderMark() {
+    Array.prototype.forEach.call(toc.querySelectorAll(".marked"), function (el) {
+      el.classList.remove("marked");
+    });
+    if (!markSeg) return;
+    var a = toc.querySelector('a[data-seg="' + markSeg + '"]');
+    var box = a && a.closest(".ch");
+    if (!box) return;
+    if (box.classList.contains("open")) a.classList.add("marked");
+    else box.querySelector("button").classList.add("marked");
+  }
+
+  function toggleMark(segId) {
+    markSeg = (markSeg === segId) ? null : segId;
+    if (markSeg) localStorage.setItem("gilgulim-mark", markSeg);
+    else localStorage.removeItem("gilgulim-mark");
+    renderMark();
+  }
+
   // ------------------------------------------------- активная глава/сегмент
   function setActive(segId) {
     if (segId === curSeg) return;
@@ -349,6 +389,7 @@ body.he article h2 { text-align: right; }
       a.classList.toggle("active", on);
       if (on && !collapsed) a.scrollIntoView({ block: "nearest" });
     });
+    renderMark();               // глава могла свернуться/раскрыться — галка переезжает
     if (history.replaceState) history.replaceState(null, "", "#" + segId);
   }
 
@@ -390,6 +431,7 @@ body.he article h2 { text-align: right; }
       if (n === curChap) {
         collapsed = !collapsed;                 // клик по текущей — свернуть/развернуть
         box.classList.toggle("open", !collapsed);
+        renderMark();
       } else {
         collapsed = false;
         var first = DATA.chapters.filter(function (c) { return c.n === n; })[0].segs[0];
@@ -401,6 +443,7 @@ body.he article h2 { text-align: right; }
     if (a) {
       e.preventDefault();
       goto(a.dataset.seg, true);
+      toggleMark(a.dataset.seg);
       if (window.matchMedia("(max-width: 900px)").matches) document.body.classList.remove("menu");
     }
   });
@@ -523,9 +566,14 @@ body.he article h2 { text-align: right; }
     document.getElementById("btn-he").classList.toggle("on", lang === "he");
     render();
     renderToc();
+    if (markSeg && !toc.querySelector('a[data-seg="' + markSeg + '"]')) {
+      markSeg = null;                      // отметка на исчезнувшем параграфе
+      localStorage.removeItem("gilgulim-mark");
+    }
     var h = decodeURIComponent(location.hash.replace(/^#/, ""));
     if (h && document.getElementById("s" + h)) goto(h, false);
     else spy();
+    renderMark();
   }).catch(function (err) {
     art.innerHTML = '<p class="loading">Не удалось загрузить data.json: ' + esc(String(err)) + "</p>";
   });
