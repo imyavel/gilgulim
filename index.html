@@ -393,8 +393,29 @@ body.he article h2 { text-align: right; }
     if (history.replaceState) history.replaceState(null, "", "#" + segId);
   }
 
-  /* Активен последний сегмент, начавшийся выше верхней трети фрейма. */
+  /* Активен последний сегмент, начавшийся выше верхней трети фрейма.
+     Во время программного перехода (goto) молчит: активным остаётся тот
+     пункт, по которому кликнули, — от этого зависит простановка галки. */
+  var lockSpy = false, lockIdle = null, lockHard = null;
+
+  function lockOn() {                    // начался программный переход
+    lockSpy = true;
+    clearTimeout(lockHard);
+    lockHard = setTimeout(unlock, 3000); // страховка: скролл не случился вовсе
+    bump();
+  }
+  function bump() {                      // скролл ещё едет — держим подавление
+    clearTimeout(lockIdle);
+    lockIdle = setTimeout(unlock, 160);  // 160 мс тишины = приехали
+  }
+  function unlock() {
+    clearTimeout(lockIdle);
+    clearTimeout(lockHard);
+    lockSpy = false;
+  }
+
   function spy() {
+    if (lockSpy) return;
     var top = main.getBoundingClientRect().top;
     var line = top + main.clientHeight / 3;
     var segs = art.querySelectorAll("p.seg");
@@ -409,18 +430,36 @@ body.he article h2 { text-align: right; }
 
   var spying = false;
   main.addEventListener("scroll", function () {
+    hidePop(0);
+    if (lockSpy) { bump(); return; }     // едет программный переход — не пересчитываем
     if (spying) return;
     spying = true;
     requestAnimationFrame(function () { spying = false; spy(); });
-    hidePop(0);
   });
 
   function goto(segId, smooth) {
     var el = document.getElementById("s" + segId);
     if (!el) return;
+    lockOn();
     el.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
     setActive(segId);
   }
+
+  /* Переход к главе: вверху окна её заголовок, активным — первый параграф. */
+  function gotoChapter(n) {
+    var h = document.getElementById("h" + n);
+    var ch = DATA.chapters.filter(function (c) { return c.n === n; })[0];
+    if (!h || !ch || !ch.segs.length) return;
+    lockOn();
+    h.scrollIntoView({ behavior: "smooth", block: "start" });
+    setActive(ch.segs[0].id);
+  }
+
+  /* Живое действие читателя отменяет подавление сразу. */
+  ["wheel", "touchstart", "mousedown"].forEach(function (ev) {
+    main.addEventListener(ev, unlock, { passive: true });
+  });
+  document.addEventListener("keydown", unlock);
 
   // --------------------------------------------------------------- события
   toc.addEventListener("click", function (e) {
@@ -434,16 +473,17 @@ body.he article h2 { text-align: right; }
         renderMark();
       } else {
         collapsed = false;
-        var first = DATA.chapters.filter(function (c) { return c.n === n; })[0].segs[0];
-        goto(first.id, true);
+        gotoChapter(n);
       }
       return;
     }
     var a = e.target.closest("a[data-seg]");
     if (a) {
       e.preventDefault();
-      goto(a.dataset.seg, true);
-      toggleMark(a.dataset.seg);
+      var seg = a.dataset.seg;
+      var chosen = (seg === curSeg);        // пункт уже выбран — второй клик по нему
+      goto(seg, true);
+      if (chosen) toggleMark(seg);          // первый клик только переводит, галку не ставит
       if (window.matchMedia("(max-width: 900px)").matches) document.body.classList.remove("menu");
     }
   });
