@@ -437,22 +437,26 @@ body.he article h2 { text-align: right; }
     requestAnimationFrame(function () { spying = false; spy(); });
   });
 
+  /* Переход к параграфу. Если он первый в главе — окно начинается с заголовка
+     главы, а не с самого параграфа. */
   function goto(segId, smooth) {
     var el = document.getElementById("s" + segId);
     if (!el) return;
+    var n = parseInt(segId.split(".")[0], 10);
+    var ch = DATA.chapters.filter(function (c) { return c.n === n; })[0];
+    var target = el;
+    if (ch && ch.segs.length && ch.segs[0].id === segId) {
+      target = document.getElementById("h" + n) || el;
+    }
     lockOn();
-    el.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
+    target.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
     setActive(segId);
   }
 
   /* Переход к главе: вверху окна её заголовок, активным — первый параграф. */
   function gotoChapter(n) {
-    var h = document.getElementById("h" + n);
     var ch = DATA.chapters.filter(function (c) { return c.n === n; })[0];
-    if (!h || !ch || !ch.segs.length) return;
-    lockOn();
-    h.scrollIntoView({ behavior: "smooth", block: "start" });
-    setActive(ch.segs[0].id);
+    if (ch && ch.segs.length) goto(ch.segs[0].id, true);
   }
 
   /* Живое действие читателя отменяет подавление сразу. */
