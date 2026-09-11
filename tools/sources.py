@@ -13,7 +13,7 @@ RU_PATH = r"C:\Users\admin\gilgulim\translation.md"
 HE_PATH = r"C:\Users\admin\gilgulim\source\gilgulim_he.md"
 GLOSSARY_PATH = r"C:\Users\admin\gilgulim\glossary.md"
 
-TRANSLATED_UPTO = 35  # переведены хакдамот 1..35
+TRANSLATED_UPTO = 36  # переведены хакдамот 1..36
 
 RU_CHAP = re.compile(r"^##\s+Хакдама\s+(\d+)\s*$")
 HE_CHAP = re.compile(r"^##\s+Hakdamah\s+(\d+)\s*$")
