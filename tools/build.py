@@ -74,14 +74,27 @@ def main():
         n_groups += len(groups)
         cur["segs"].append({"id": sid, "groups": groups})
 
+    # последняя опубликованная глава может быть переведена не целиком:
+    # сверяем число её сегментов с оригиналом (глава из load_he не обрезается)
+    last = chapters[-1]
+    he_total = len(dict(sources.load_he(last["n"])).get(last["n"], []))
+    if len(last["segs"]) < he_total:
+        last_sid = last["segs"][-1]["id"]
+        translated_upto = last_sid
+        note_end = (u"Конец переведённого фрагмента (хакдамот 1–%d и хакдама %d до § %s). "
+                    u"Перевод продолжается." % (last["n"] - 1, last["n"], last_sid))
+    else:
+        translated_upto = str(sources.TRANSLATED_UPTO)
+        note_end = (u"Конец переведённого фрагмента (хакдамот 1–%d). "
+                    u"Перевод продолжается." % sources.TRANSLATED_UPTO)
+
     data = {
         "meta": {
             "title": u"Врата кругооборотов",
             "subtitle": u"Шаар ѓа-Гилгулим · р. Хаим Виталь по учению АРИ",
-            "translated_upto": str(sources.TRANSLATED_UPTO),
+            "translated_upto": translated_upto,
             "built": datetime.date.today().isoformat(),
-            "note_end": (u"Конец переведённого фрагмента (хакдамот 1–%d). "
-                         u"Перевод продолжается." % sources.TRANSLATED_UPTO),
+            "note_end": note_end,
         },
         "chapters": chapters,
     }
@@ -89,6 +102,7 @@ def main():
         json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
 
     print(u"глав: %d" % len(chapters))
+    print(u"последняя глава %d: %d из %d сегментов оригинала" % (last["n"], len(last["segs"]), he_total))
     print(u"сегментов: %d" % len(ps))
     print(u"групп: %d" % n_groups)
     print(u"сегментов без выравнивания (нет кэша): %d" % len(no_cache))
