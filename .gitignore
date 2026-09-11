@@ -17,3 +17,4 @@ _shots/
 dev_run*
 # временные файлы отладки
 .tmp/
+.tmp_align/

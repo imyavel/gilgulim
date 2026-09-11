@@ -13,7 +13,7 @@ RU_PATH = r"C:\Users\admin\gilgulim\translation.md"
 HE_PATH = r"C:\Users\admin\gilgulim\source\gilgulim_he.md"
 GLOSSARY_PATH = r"C:\Users\admin\gilgulim\glossary.md"
 
-TRANSLATED_UPTO = 38  # хакдамот 1..38 (последняя может быть неполной — build это определяет)
+TRANSLATED_UPTO = 40  # хакдамот 1..40 — вся книга, 41 в источнике пуста (последняя может быть неполной — build это определяет)
 
 RU_CHAP = re.compile(r"^##\s+Хакдама\s+(\d+)\s*$")
 HE_CHAP = re.compile(r"^##\s+Hakdamah\s+(\d+)\s*$")

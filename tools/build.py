@@ -77,12 +77,28 @@ def main():
     # последняя опубликованная глава может быть переведена не целиком:
     # сверяем число её сегментов с оригиналом (глава из load_he не обрезается)
     last = chapters[-1]
-    he_total = len(dict(sources.load_he(last["n"])).get(last["n"], []))
+    he_all = sources.load_he(10 ** 9)  # весь оригинал, без обрезки по TRANSLATED_UPTO
+    he_total = len(dict(he_all).get(last["n"], []))
+    # главы оригинала после последней опубликованной; пустые (без сегментов) не в счёт
+    later = [(n, segs) for n, segs in he_all if n > last["n"]]
+    complete = False
     if len(last["segs"]) < he_total:
         last_sid = last["segs"][-1]["id"]
         translated_upto = last_sid
         note_end = (u"Конец переведённого фрагмента (хакдамот 1–%d и хакдама %d до § %s). "
                     u"Перевод продолжается." % (last["n"] - 1, last["n"], last_sid))
+    elif all(not segs for _, segs in later):
+        # опубликован весь текст оригинала
+        complete = True
+        translated_upto = str(sources.TRANSLATED_UPTO)
+        note_end = u"Конец книги. Переведены хакдамот 1–%d" % last["n"]
+        empty = [str(n) for n, _ in later]
+        if len(empty) == 1:
+            note_end += u"; хакдама %s в издании-источнике (Sefaria) пуста." % empty[0]
+        elif empty:
+            note_end += u"; хакдамот %s в издании-источнике (Sefaria) пусты." % ", ".join(empty)
+        else:
+            note_end += u"."
     else:
         translated_upto = str(sources.TRANSLATED_UPTO)
         note_end = (u"Конец переведённого фрагмента (хакдамот 1–%d). "
@@ -98,6 +114,8 @@ def main():
         },
         "chapters": chapters,
     }
+    if complete:
+        data["meta"]["complete"] = True
     with io.open(OUT, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
 
