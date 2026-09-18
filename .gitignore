@@ -11,6 +11,8 @@ tz*.md
 dev_run*.json
 dev_run*.err
 PROJECT.md
+plan.md
+tz/
 REPORT_tz*.md
 _shots/
 # операторские запускалки/логи
