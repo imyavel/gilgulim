@@ -1,0 +1,54 @@
+{# Шаблон страницы главы N.html. Заполняет tools/build.py: {{…}} — подстановки,
+   такие комментарии в страницы не попадают. Стили и логика — общие app.css / app.js. #}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+{# режим HE и переход к #параграфу: статья скрыта, пока app.js не отрисует и не
+   спозиционирует (без мигания русского и без прыжка); страховка, если app.js
+   не отработал, — показать по событию load #}
+<script>(function(){var d=document.documentElement,l;try{l=localStorage.getItem("gilgulim-lang")}catch(e){}d.className=l=="he"?"he wait":location.hash.length>1?"wait":"";addEventListener("load",function(){d.classList.remove("wait")})})()</script>
+<title>{{title}}</title>
+<meta name="description" content="{{description}}">
+<link rel="canonical" href="{{url}}">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="stylesheet" href="{{css}}">
+<meta name="theme-color" content="#6b2d5c">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Будущий Мир">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="{{title}}">
+<meta property="og:description" content="{{description}}">
+<meta property="og:url" content="{{url}}">
+</head>
+<body>
+<button id="burger" title="Оглавление">☰</button>
+<div id="veil"></div>
+<div class="layout">
+<aside id="side">
+<div class="head">
+<h1>Врата кругооборотов</h1>
+<div class="sub">Шаар ѓа-Гилгулим · р. Хаим Виталь по учению АРИ</div>
+<div class="hint">Для транслитерации зажмите <kbd>Shift</kbd> и водите мышью</div>
+<a class="back" href="../">← imyavel.github.io</a>
+</div>
+<div class="langs">
+<button id="btn-ru" class="on" data-lang="ru">RU</button>
+<button id="btn-he" data-lang="he">HE</button>
+</div>
+<nav class="toc" id="toc">
+{{toc}}
+</nav>
+</aside>
+<main id="main">
+<article id="art">
+{{article}}
+</article>
+<div id="pop"><div class="he" lang="he" dir="rtl"></div><div class="tr"></div></div>
+</main>
+</div>
+<script type="application/json" id="data">{{data}}</script>
+<script src="{{js}}"></script>
+</body>
+</html>

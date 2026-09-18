@@ -1,0 +1,264 @@
+/* Врата кругооборотов — общие стили страниц глав (1.html … 40.html). */
+:root {
+  --fg: #1a1a1a;
+  --muted: #666;
+  --accent: #6b2d5c;
+  --bg: #fdfcf7;
+  --card: #fff;
+  --border: #e0dbce;
+  --side: #f7f4ea;
+  --mark: #f0d9a8;
+  --mark2: #f6ecd2;
+  --ok: #2e8b40;
+  --hefont: 'David', 'Frank Ruehl CLM', 'Times New Roman', serif;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--fg);
+  background: var(--bg);
+  overflow: hidden;
+}
+.layout { display: flex; height: 100vh; }
+
+/* пока app.js не отрисовал иврит и не перешёл к #параграфу — текст не показываем:
+   без мигания русского в режиме HE и без прыжка прокрутки (класс ставит <head>) */
+html.wait #art, html.wait.he nav.toc { visibility: hidden; }
+
+/* ---------------------------------------------------------- левая панель */
+#side {
+  width: 280px;
+  flex: 0 0 280px;
+  background: var(--side);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1.2rem 0 3rem;
+}
+#side .head { padding: 0 1rem 1rem; border-bottom: 1px solid var(--border); }
+#side h1 {
+  font-size: 1.15rem;
+  font-weight: normal;
+  color: var(--accent);
+  margin: 0 0 0.35rem;
+  line-height: 1.3;
+}
+#side .sub { font-size: 0.8rem; color: var(--muted); line-height: 1.4; margin-bottom: 0.7rem; }
+#side .back { font-size: 0.8rem; color: var(--muted); text-decoration: none; }
+#side .back:hover { color: var(--accent); text-decoration: underline; }
+
+/* подсказка про Shift: только RU и только там, где есть мышь (попап работает от неё) */
+#side .hint { display: none; font-size: 0.8rem; color: var(--muted); line-height: 1.4; margin-bottom: 0.7rem; }
+#side .hint kbd {
+  font-family: inherit;
+  font-size: 0.72rem;
+  padding: 0 0.3em;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  background: var(--card);
+  color: var(--fg);
+}
+@media (hover: hover) and (pointer: fine) {
+  html:not(.he) #side .hint { display: block; }
+}
+
+.langs { display: flex; gap: 0.5rem; padding: 0.9rem 1rem; border-bottom: 1px solid var(--border); }
+.langs button {
+  flex: 1;
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 0.35rem 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--card);
+  color: var(--muted);
+  cursor: pointer;
+}
+.langs button:hover { border-color: var(--accent); color: var(--accent); }
+.langs button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* оглавление; отступы логические — в режиме HE оно справа налево (dir="rtl") */
+nav.toc { padding: 0.4rem 0 0; }
+nav.toc .ch { border-bottom: 1px dashed var(--border); }
+nav.toc a { touch-action: manipulation; }   /* без задержки двойного тапа */
+nav.toc .ch > a {
+  display: block;
+  font-size: 0.95rem;
+  padding: 0.5rem 1rem;
+  color: var(--fg);
+  text-decoration: none;
+}
+nav.toc .ch > a:hover { color: var(--accent); }
+nav.toc .ch.open > a { color: var(--accent); }
+nav.toc .ch.cur > a { font-weight: bold; }
+nav.toc ul { list-style: none; margin: 0; padding: 0 0 0.4rem; display: none; }
+nav.toc .ch.open ul { display: block; }
+nav.toc li a {
+  display: block;
+  padding-block: 0.18rem;
+  padding-inline: 1.9rem 1rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-decoration: none;
+  scroll-margin: 3rem 0;
+}
+nav.toc li a:hover { color: var(--accent); background: #efe9dd; }
+nav.toc li a.active { color: var(--accent); background: #ece3d2; font-weight: bold; }
+nav.toc[dir="rtl"] { font-family: var(--hefont); }
+nav.toc[dir="rtl"] .ch > a { font-size: 1.1rem; }
+nav.toc[dir="rtl"] li a { font-size: 1rem; }
+
+/* галка выбранного пункта: на параграфе, а если его глава свёрнута или это
+   другая глава — на строке главы */
+nav.toc li a, nav.toc .ch > a { position: relative; }
+nav.toc a.marked { padding-inline-end: 2rem; }
+nav.toc a.marked::after {
+  content: "✓";
+  position: absolute;
+  inset-inline-end: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ok);
+  font-family: Georgia, serif;
+  font-weight: bold;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* ------------------------------------------------------------ основной фрейм */
+#main {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+  padding: 2rem 1.5rem 60vh;
+}
+article { max-width: 760px; margin: 0 auto; }
+article h2 {
+  font-size: 1.4rem;
+  font-weight: normal;
+  color: var(--accent);
+  margin: 0 0 1rem;
+  padding-top: 0.6rem;
+  scroll-margin-top: 1rem;
+}
+p.seg { margin: 0 0 1.15rem; text-align: justify; scroll-margin-top: 1rem; }
+p.seg .lbl { color: #b3aa96; font-size: 0.78rem; margin-inline-end: 0.25rem; vertical-align: 0.15em; }
+
+/* соседние главы */
+nav.pn { display: flex; gap: 1rem; margin: 2.6rem 0 0; padding-top: 1.2rem; border-top: 1px solid var(--border); }
+nav.pn a { color: var(--accent); text-decoration: none; touch-action: manipulation; padding: 0.4rem 0; }
+nav.pn a:hover { text-decoration: underline; }
+nav.pn .next { margin-inline-start: auto; }
+
+.end-note {
+  margin: 3rem 0 0;
+  padding: 1rem 1.2rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+/* ивритский режим: русское скрыто, ивритское (его строит app.js) показано */
+html:not(.he) #art .he, html.he #art .ru { display: none; }
+html.he #art { direction: rtl; text-align: right; }
+html.he p.seg {
+  font-family: var(--hefont);
+  font-size: 22px;
+  line-height: 1.85;
+  text-align: right;
+}
+html.he p.seg .lbl { font-size: 0.85rem; }
+html.he #art h2 { font-family: var(--hefont); font-size: 1.75rem; }
+html.he #art h2.nohe { display: none; }      /* у главы 1 заголовок — сам § 1.1 */
+html.he nav.pn a { font-family: var(--hefont); font-size: 1.15rem; }
+
+/* подсветка слова под курсором (только режим RU) */
+.w.hot { background: var(--mark2); border-radius: 2px; }
+
+/* ------------------------------------------------------------------ попап */
+#pop {
+  position: absolute;
+  z-index: 30;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.13);
+  padding: 0.7rem 0.9rem;
+  display: none;
+  max-height: 42vh;
+  overflow-y: auto;
+}
+#pop.on { display: block; }
+#pop .he {
+  direction: rtl;
+  text-align: right;
+  font-family: var(--hefont);
+  font-size: 21px;
+  line-height: 1.75;
+}
+#pop .tr {
+  direction: ltr;
+  text-align: left;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #4a4a4a;
+  border-top: 1px solid var(--border);
+  margin-top: 0.55rem;
+  padding-top: 0.55rem;
+}
+#pop .hw.hit, #pop .tw.hit { background: var(--mark); border-radius: 2px; }
+
+/* ------------------------------------------------------------ узкий экран */
+#burger {
+  display: none;
+  position: fixed;
+  top: 0.6rem;
+  left: 0.6rem;
+  z-index: 40;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 0.4rem 0.6rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--accent);
+  cursor: pointer;
+}
+#veil { display: none; }
+@media (max-width: 900px) {
+  #burger { display: block; }
+  #side {
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    z-index: 45;
+    transform: translateX(-100%);
+    transition: transform 0.18s ease-out;
+    box-shadow: 0 0 20px rgba(0,0,0,0.15);
+  }
+  body.menu #side { transform: none; }
+  body.menu #veil {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 44;
+    background: rgba(0,0,0,0.25);
+  }
+  /* текст начинается правее гамбургера: он висит в левом верхнем углу и
+     закрывал номер параграфа, к которому только что перешли */
+  #main { padding: 1.2rem 1rem 60vh 3.6rem; }
+  body { font-size: 17px; }
+  /* пальцевые цели: на телефоне пункт оглавления был ~24 px — мимо него
+     легко промахнуться, отсюда «клик не срабатывает» */
+  nav.toc .ch > a { padding: 0.85rem 1rem; font-size: 1rem; }
+  nav.toc li a { padding-block: 0.62rem; font-size: 0.95rem; }
+  nav.toc a.marked { padding-inline-end: 2.4rem; }
+  nav.pn a { padding: 0.7rem 0; }
+}
