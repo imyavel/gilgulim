@@ -334,14 +334,7 @@ def main():
         # опубликован весь текст оригинала
         complete = True
         translated_upto = str(sources.TRANSLATED_UPTO)
-        note_end = u"Конец книги. Переведены главы 1–%d" % last["n"]
-        empty = [str(n) for n, _ in later]
-        if len(empty) == 1:
-            note_end += u"; глава %s в издании-источнике (Sefaria) пуста." % empty[0]
-        elif empty:
-            note_end += u"; главы %s в издании-источнике (Sefaria) пусты." % ", ".join(empty)
-        else:
-            note_end += u"."
+        note_end = u"Конец книги."   # решение оператора 2026-09-18: без перечня глав
     else:
         translated_upto = str(sources.TRANSLATED_UPTO)
         note_end = (u"Конец переведённого фрагмента (главы 1–%d). "
