@@ -20,3 +20,5 @@ dev_run*
 # временные файлы отладки
 .tmp/
 .tmp_align/
+# генерируется translation/md2rtf.py
+translation/translation.rtf
