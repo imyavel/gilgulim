@@ -7,7 +7,6 @@
   var main = document.getElementById("main");
   var art = document.getElementById("art");
   var toc = document.getElementById("toc");
-  var side = document.getElementById("side");
   var pop = document.getElementById("pop");
   var popHe = pop.querySelector(".he");
   var popTr = pop.querySelector(".tr");
@@ -335,7 +334,7 @@
       fn(s.el);
     }, { passive: false });
   }
-  onTap(toc, side, HIT, activate);
+  onTap(toc, toc, HIT, activate);
   var pn = art.querySelector("nav.pn");
   if (pn) onTap(pn, main, "a", function (a) { location.href = a.href; });
 

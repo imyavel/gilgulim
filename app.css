@@ -35,11 +35,14 @@ html.wait #art, html.wait.he nav.toc { visibility: hidden; }
   flex: 0 0 280px;
   background: var(--side);
   border-right: 1px solid var(--border);
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 1.2rem 0 3rem;
+  /* шапка и RU/HE стоят на месте, прокручивается только оглавление */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-top: 1.2rem;
 }
 #side .head { padding: 0 1rem 1rem; border-bottom: 1px solid var(--border); }
+#side .head, .langs { flex: none; }
 #side h1 {
   font-size: 1.15rem;
   font-weight: normal;
@@ -83,7 +86,13 @@ html.wait #art, html.wait.he nav.toc { visibility: hidden; }
 .langs button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
 
 /* оглавление; отступы логические — в режиме HE оно справа налево (dir="rtl") */
-nav.toc { padding: 0.4rem 0 0; }
+nav.toc {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.4rem 0 3rem;
+}
 nav.toc .ch { border-bottom: 1px dashed var(--border); }
 nav.toc a { touch-action: manipulation; }   /* без задержки двойного тапа */
 nav.toc .ch > a {
