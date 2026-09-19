@@ -22,3 +22,5 @@ dev_run*
 .tmp_align/
 # генерируется translation/md2rtf.py
 translation/translation.rtf
+# рабочие порции этапов перевода (merge_parts.py), в репо не нужны
+translation/parts/
