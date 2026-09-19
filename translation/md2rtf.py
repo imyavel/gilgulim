@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""translation.md -> translation.rtf. Запускать из C:\\Users\\admin\\gilgulim."""
+"""translation.md -> translation.rtf. Запускать из translation/ (репо gilgulim)."""
 import re
 
 SRC, DST = "translation.md", "translation.rtf"

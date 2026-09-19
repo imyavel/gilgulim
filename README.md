@@ -20,6 +20,9 @@
 - `data/align/<N.s>.json` — кэш выравнивания по сегментам (дорого получен через LLM,
   поэтому лежит в репозитории и не пересчитывается).
 - `tools/` — сборка: `page.html` — шаблон страницы главы, `build.py`, `align.py`, `prodcheck.py`.
+- `translation/` — исходники перевода: `translation.md` — первоисточник русского текста,
+  `source/gilgulim_he.md` — ивритский оригинал (Sefaria), `glossary.md` — глоссарий терминов,
+  `PROGRESS.md` — ход и правила перевода, `md2rtf.py` — выгрузка в RTF.
 
 ## Как пользоваться
 
@@ -37,8 +40,8 @@
 
 ## Сборка
 
-Источники лежат вне репозитория (только для чтения):
-`C:\Users\admin\gilgulim\translation.md` и `C:\Users\admin\gilgulim\source\gilgulim_he.md`.
+Сборка читает перевод и оригинал из `translation/`: `translation/translation.md` и
+`translation/source/gilgulim_he.md`.
 
 ```sh
 python tools/align.py     # выравнивание новых сегментов через headless Claude (кэш)

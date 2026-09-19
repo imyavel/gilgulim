@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Парсинг исходников: перевод (translation.md) и оригинал (source/gilgulim_he.md).
+"""Парсинг исходников: перевод (translation/translation.md) и оригинал (translation/source/gilgulim_he.md).
 
 Общий модуль для align.py и build.py. Ничего не пишет, только читает.
 """
@@ -9,9 +9,10 @@ import re
 import sys
 import unicodedata
 
-RU_PATH = r"C:\Users\admin\gilgulim\translation.md"
-HE_PATH = r"C:\Users\admin\gilgulim\source\gilgulim_he.md"
-GLOSSARY_PATH = r"C:\Users\admin\gilgulim\glossary.md"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # корень репо
+RU_PATH = os.path.join(ROOT, "translation", "translation.md")
+HE_PATH = os.path.join(ROOT, "translation", "source", "gilgulim_he.md")
+GLOSSARY_PATH = os.path.join(ROOT, "translation", "glossary.md")
 
 TRANSLATED_UPTO = 40  # хакдамот 1..40 — вся книга, 41 в источнике пуста (последняя может быть неполной — build это определяет)
 

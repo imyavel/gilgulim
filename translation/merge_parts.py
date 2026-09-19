@@ -5,13 +5,13 @@
     python merge_parts.py 6 --write    дописать в translation.md
 
 Порции этапа N: parts/p<N>a01.md, p<N>a02.md, …, p<N>b01.md, … (буква = субагент,
-порядок букв = порядок текста в книге). Запускать из C:\\Users\\admin\\gilgulim."""
+порядок букв = порядок текста в книге). Запускать из translation/ (репо gilgulim)."""
 import glob
 import io
 import re
 import sys
 
-ROOT = "C:/Users/admin/gilgulim/"
+ROOT = ""  # пути относительно translation/
 # этап -> (первый сегмент, последний сегмент) включительно
 STAGES = {
     6: ((36, 1), (36, 122)),
