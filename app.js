@@ -384,7 +384,7 @@
     return p ? p.id.slice(1) + ":" + grp.dataset.g : null;
   }
 
-  function showPop(grp, key) {
+  function showPop(grp, key, y) {
     clearTimeout(hideTimer);
     var g = GROUPS[key];
     if (!g) return;
@@ -394,25 +394,49 @@
       popTr.innerHTML = g[1] ? wrapSpaced(g[1], "tw") : '<span class="tw">(транслитерация недоступна)</span>';
     }
     pop.classList.add("on");
-    place(grp);
+    place(grp, y);
   }
 
-  function place(grp) {
+  function lineHeight(el) { return parseFloat(getComputedStyle(el).lineHeight); }
+
+  // строка под курсором: фрагмент группы, ближайший к курсору по вертикали, растянутый до высоты строки
+  function cursorLine(grp, y) {
+    var rs = grp.getClientRects(), r = null, d = Infinity;
+    for (var i = 0; i < rs.length; i++) {
+      var dd = Math.abs((rs[i].top + rs[i].bottom) / 2 - y);
+      if (dd < d) { d = dd; r = rs[i]; }
+    }
+    if (!r) r = grp.getBoundingClientRect();
+    var lh = lineHeight(grp) || r.height, mid = (r.top + r.bottom) / 2;
+    return { top: mid - lh / 2, bottom: mid + lh / 2, lh: lh };
+  }
+
+  // дальний край соседней строки текста ниже (dir 1) или выше (dir -1) строки курсора:
+  // внутри абзаца — через высоту строки, у края абзаца — крайняя строка соседнего блока
+  function farEdge(grp, line, dir) {
+    var blk = grp.closest("#art > *"), b = blk.getBoundingClientRect();
+    var step = dir > 0 ? line.bottom + line.lh : line.top - line.lh;
+    if (dir > 0 ? line.bottom + line.lh / 2 < b.bottom : line.top - line.lh / 2 > b.top) return step;
+    var sib = blk;
+    do sib = dir > 0 ? sib.nextElementSibling : sib.previousElementSibling;
+    while (sib && !sib.offsetHeight);
+    if (!sib) return step;
+    var s = sib.getBoundingClientRect(), slh = lineHeight(sib) || line.lh;
+    return dir > 0 ? s.top + slh : s.bottom - slh;
+  }
+
+  // попап — через одну строку от строки курсора: мышь спускается (поднимается) на неё,
+  // не заходя в попап, и попап сдвигается следом
+  function place(grp, y) {
     var mrect = main.getBoundingClientRect();
-    var grect = grp.getBoundingClientRect();
     var col = art.getBoundingClientRect();
     pop.style.width = Math.min(col.width, mrect.width - 24) + "px";
     pop.style.left = (col.left - mrect.left + main.scrollLeft) + "px";
-    var above = grect.top - mrect.top;
-    var below = mrect.bottom - grect.bottom;
-    var h = pop.offsetHeight;
-    var top;
-    if (below >= above) {
-      top = grect.bottom - mrect.top + main.scrollTop + 8;
-    } else {
-      top = grect.top - mrect.top + main.scrollTop - h - 8;
-    }
-    pop.style.top = Math.max(0, top) + "px";
+    var line = cursorLine(grp, y);
+    var above = line.top - mrect.top;
+    var below = mrect.bottom - line.bottom;
+    var top = below >= above ? farEdge(grp, line, 1) : farEdge(grp, line, -1) - pop.offsetHeight;
+    pop.style.top = Math.max(0, top - mrect.top + main.scrollTop) + "px";
   }
 
   function markWord(wEl, key) {
@@ -446,7 +470,7 @@
     }
     var w = el && el.closest ? el.closest(".w") : null;
     var key = groupKey(grp);
-    showPop(grp, key);
+    showPop(grp, key, e.clientY);
     markWord(w && grp.contains(w) ? w : null, key);
   }
 
