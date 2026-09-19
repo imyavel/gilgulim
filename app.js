@@ -331,7 +331,7 @@
       if (e.target.closest(sel) !== s.el) return;                                    // палец ушёл с пункта
       lastTap = Date.now();
       e.preventDefault();                     // гасим синтетический click следом
-      fn(s.el);
+      fn(s.el, t);
     }, { passive: false });
   }
   onTap(toc, toc, HIT, activate);
@@ -452,7 +452,19 @@
     if (tw) tw.classList.add("hit");
   }
 
+  // слова оборачиваются лениво — при первом наведении на группу или касании её
+  function wrapGroup(grp) {
+    if (grp.dataset.w) return false;
+    grp.innerHTML = wrapWords(grp.textContent, "w");
+    grp.dataset.w = "1";
+    return true;
+  }
+
+  // мышиные события, которые браузер досылает после касания, попап не трогают
+  function afterTap() { return Date.now() - lastTap < 800; }
+
   function handle(e) {
+    if (afterTap()) return;
     lastEvent = e;
     if (lang !== "ru") return;
     if (!e.shiftKey) {
@@ -462,11 +474,7 @@
     var el = document.elementFromPoint(e.clientX, e.clientY);
     var grp = el && el.closest ? el.closest(".grp") : null;
     if (!grp) { hidePop(150); markWord(null); return; }
-    if (!grp.dataset.w) {            // слова оборачиваются лениво — при первом наведении на группу
-      grp.innerHTML = wrapWords(grp.textContent, "w");
-      grp.dataset.w = "1";
-      el = document.elementFromPoint(e.clientX, e.clientY);
-    }
+    if (wrapGroup(grp)) el = document.elementFromPoint(e.clientX, e.clientY);
     var w = el && el.closest ? el.closest(".w") : null;
     var key = groupKey(grp);
     showPop(grp, key, e.clientY);
@@ -474,7 +482,43 @@
   }
 
   main.addEventListener("mousemove", handle);
-  main.addEventListener("mouseleave", function () { hidePop(150); markWord(null); });
+  main.addEventListener("mouseleave", function () {
+    if (!afterTap()) { hidePop(150); markWord(null); }
+  });
+
+  // палец вместо мыши: касание слова — попап и подсветка, касание другого слова — попап
+  // переезжает к нему; касание выделенного слова, попапа или пустого места — закрыть
+  var tapWord = null;
+
+  function untap() { hidePop(0); markWord(null); tapWord = null; }
+
+  function nearestWord(grp, x, y) {           // палец попал в пробел между словами
+    var best = null, d = Infinity;
+    each(".w", function (w) {
+      var rs = w.getClientRects();
+      for (var i = 0; i < rs.length; i++) {
+        var dx = Math.max(rs[i].left - x, 0, x - rs[i].right);
+        var dy = Math.max(rs[i].top - y, 0, y - rs[i].bottom);
+        if (dx * dx + dy * dy < d) { d = dx * dx + dy * dy; best = w; }
+      }
+    }, grp);
+    return best;
+  }
+
+  onTap(main, main, "#main", function (_, t) {
+    if (lang !== "ru") return;
+    var el = document.elementFromPoint(t.clientX, t.clientY);
+    if (el && el.closest("a")) return;       // пред./след. — у них свой обработчик
+    var grp = el && el.closest(".grp");
+    if (!grp) { untap(); return; }
+    if (wrapGroup(grp)) el = document.elementFromPoint(t.clientX, t.clientY);
+    var w = (el && el.closest(".w")) || nearestWord(grp, t.clientX, t.clientY);
+    if (!w || (w === tapWord && pop.classList.contains("on"))) { untap(); return; }
+    var key = groupKey(grp);
+    tapWord = w;
+    showPop(grp, key, t.clientY);
+    markWord(w, key);
+  });
   document.addEventListener("keydown", function (e) {
     // Shift нажали, когда курсор уже стоит над текстом
     if (e.key === "Shift" && lastEvent) handle({

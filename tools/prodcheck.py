@@ -217,12 +217,13 @@ with browser.open_context(args.profile) as ctx:
     # 2.2 RU: «Глава N», подсказка
     ru = page.evaluate("""() => ({toc: [...document.querySelectorAll('nav.toc .ch > a')].map(a => a.textContent),
         h2: document.querySelector('#art h2').innerText.trim(), title: document.title,
-        hint: document.querySelector('#side .hint').textContent.replace(/\\s+/g, ' ').trim()})""")
+        hint: document.querySelector('#side .hint.mouse').textContent.replace(/\\s+/g, ' ').trim()})""")
     check(ru["toc"] == [u"Глава %d" % n for n in CHAPS], "RU: оглавление «Глава 1» … «Глава %d»" % LAST)
     check(ru["h2"] == u"Глава %d" % chap, "RU: заголовок «Глава %d» (факт: %s)" % (chap, ru["h2"]))
     check(ru["title"] == u"Глава %d · Врата кругооборотов" % chap, "RU: <title> (факт: %s)" % ru["title"])
-    check(visible(page, "#side .hint") and ru["hint"] == u"Для транслитерации зажмите Shift и водите мышью",
+    check(visible(page, "#side .hint.mouse") and ru["hint"] == u"Для транслитерации зажмите Shift и водите мышью",
           "RU: подсказка видна, текст дословно (%s)" % ru["hint"])
+    check(not visible(page, "#side .hint.touch"), "RU, мышь: подсказки про касание нет")
     shot(page, "desk-ru.png")
 
     # 2.3 ивритские числа в app.js против эталона
@@ -339,7 +340,7 @@ with browser.open_context(args.profile) as ctx:
     check(he["seg"].startswith(u"[%s]" % heb_num(num)) and any(u"\u05d0" <= ch <= u"\u05ea" for ch in he["seg"][5:]),
           u"HE: метка «[%s]» и ивритский текст в § %s (%s)" % (heb_num(num), seg, he["seg"][:30]))
     check(he["pn"] == [u"→ " + heb_title(chap - 1), heb_title(chap + 1) + u" ←"], u"HE: пред./след. на иврите (%s)" % he["pn"])
-    check(not visible(page, "#side .hint"), "HE: подсказка скрыта")
+    check(not visible(page, "#side .hint.mouse") and not visible(page, "#side .hint.touch"), "HE: подсказка скрыта")
     check(he["head"] == u"Врата кругооборотов | Шаар ѓа-Гилгулим · р. Хаим Виталь по учению АРИ", "HE: шапка панели не изменилась")
     page.evaluate("document.getElementById('main').scrollTop = 0")
     page.wait_for_timeout(300)
@@ -353,7 +354,7 @@ with browser.open_context(args.profile) as ctx:
     page.click("#btn-ru")
     page.wait_for_timeout(300)
     back = page.evaluate("() => ({cls: document.documentElement.className, toc1: document.querySelector('nav.toc .ch > a').textContent})")
-    check("he" not in back["cls"].split() and back["toc1"] == u"Глава 1" and visible(page, "#side .hint"),
+    check("he" not in back["cls"].split() and back["toc1"] == u"Глава 1" and visible(page, "#side .hint.mouse"),
           u"снова RU: «Глава 1», подсказка видна")
 
     # 2.9 чужой параграф на странице → его страница
@@ -379,8 +380,52 @@ with browser.open_context(args.profile) as ctx:
     mob = page.evaluate("() => ({coarse: matchMedia('(pointer: coarse)').matches, w: innerWidth, burger: getComputedStyle(document.getElementById('burger')).display})")
     print("mobile:", mob)
     check(mob["coarse"] and mob["w"] == 375 and mob["burger"] != "none", "телефон: касания, 375 px, гамбургер виден")
-    check(not visible(page, "#side .hint"), "телефон: подсказка скрыта")
+    mh = page.evaluate("() => document.querySelector('#side .hint.touch').textContent.trim()")
+    check(visible(page, "#side .hint.touch") and not visible(page, "#side .hint.mouse")
+          and mh == u"Для транслитерации коснитесь слова", u"телефон: подсказка про касание (%s)" % mh)
     shot(page, "mob-ru.png")
+
+    # касание слова: попап и подсветка; другое слово — попап переезжает; то же слово,
+    # попап или пустое место — закрыть
+    def tap_xy(x, y):
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": x, "y": y}]})
+        page.wait_for_timeout(60)
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+        page.wait_for_timeout(400)          # и досланные браузером мышиные события
+
+    def pst():
+        return page.evaluate("""() => { const p = document.getElementById('pop'), h = document.querySelector('#art .w.hot');
+            return {on: p.classList.contains('on'), he: p.querySelector('.he').textContent, hot: h ? h.textContent : null,
+                    hit: (p.querySelector('.hw.hit') || {}).textContent || null}; }""")
+
+    def word_xy(css, i):
+        return page.evaluate("""([s, i]) => { const w = document.querySelectorAll(s + ' .w')[i], r = w.getClientRects()[0];
+            return [r.left + r.width / 2, r.top + r.height / 2]; }""", [css, i])
+
+    g0 = '[id="s%s"] .grp[data-g="0"]' % seg
+    r0 = page.evaluate("(s) => { const r = document.querySelector(s).getClientRects()[0]; return [r.left + 12, r.top + r.height / 2]; }", g0)
+    tap_xy(*r0)
+    a = pst()
+    check(a["on"] and a["hot"] and a["hit"], u"телефон: касание слова — попап и подсветка (%s → %s)" % (a["hot"], a["hit"]))
+    tap_xy(*word_xy(g0, 3))
+    b = pst()
+    check(b["on"] and b["hot"] and b["hot"] != a["hot"], u"телефон: касание другого слова — подсветка переехала (%s)" % b["hot"])
+    tap_xy(*word_xy(g0, 3))
+    c = pst()
+    check(not c["on"] and not c["hot"], u"телефон: касание выделенного слова — попап и подсветка сняты")
+    g1 = '[id="s%s"] .grp[data-g="1"]' % seg
+    r1 = page.evaluate("(s) => { const r = document.querySelector(s).getClientRects()[0]; return [r.left + 12, r.top + r.height / 2]; }", g1)
+    tap_xy(*r1)
+    d = pst()
+    check(d["on"] and d["he"] != a["he"], u"телефон: касание слова другого предложения — попап с его текстом")
+    shot(page, "mob-tap.png")
+    pr = page.evaluate("() => { const r = document.getElementById('pop').getBoundingClientRect(); return [r.left + r.width / 2, r.top + 10]; }")
+    tap_xy(*pr)
+    check(not pst()["on"], u"телефон: касание попапа — закрыт")
+    tap_xy(*r1)
+    tap_xy(20, 500)
+    e = pst()
+    check(not e["on"] and not e["hot"], u"телефон: касание пустого места — закрыт")
     tap("#burger")
     page.wait_for_timeout(400)
     check(page.evaluate("document.body.classList.contains('menu')"), "телефон: тап по гамбургеру открывает меню")

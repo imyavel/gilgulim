@@ -54,7 +54,7 @@ html.wait #art, html.wait.he nav.toc { visibility: hidden; }
 #side .back { font-size: 0.8rem; color: var(--muted); text-decoration: none; }
 #side .back:hover { color: var(--accent); text-decoration: underline; }
 
-/* подсказка про Shift: только RU и только там, где есть мышь (попап работает от неё) */
+/* подсказка только в RU: с мышью — про Shift, на сенсорном экране — про касание слова */
 #side .hint { display: none; font-size: 0.8rem; color: var(--muted); line-height: 1.4; margin-bottom: 0.7rem; }
 #side .hint kbd {
   font-family: inherit;
@@ -67,7 +67,10 @@ html.wait #art, html.wait.he nav.toc { visibility: hidden; }
   color: var(--fg);
 }
 @media (hover: hover) and (pointer: fine) {
-  html:not(.he) #side .hint { display: block; }
+  html:not(.he) #side .hint.mouse { display: block; }
+}
+@media (pointer: coarse) {
+  html:not(.he) #side .hint.touch { display: block; }
 }
 
 .langs { display: flex; gap: 0.5rem; padding: 0.9rem 1rem; border-bottom: 1px solid var(--border); }
